@@ -25,7 +25,7 @@ unsigned long prev_elapsed_time = 0;
 #define HEIGHT 64
 
 
-
+struct Vector2 { float x;  float y;};
 struct Position { float x;  float y;};
 struct Velocity { short x;   short y;};
 
@@ -39,13 +39,16 @@ unsigned long time_to_update = 0.0;
 
 void setup(void) {
   u8g2.begin();
-//  Serial.begin(9600);
+  Serial.begin(9600);
 
 
   const int min_speed = 10;
   const int max_speed = 30;
   for(int i=0; i< PARTICLE_COUNT; i++)
   {
+    position[i].y = HEIGHT - position[i].y;
+    position[i].y += 2;
+    position[i].x += 2;
 //    Position pos;
 //    pos.x = (i % 32)*4;
 //    pos.y = floor(i / 32.0)*4;
@@ -54,11 +57,11 @@ void setup(void) {
 //    position[i].y = pos.y;
     
     
-    velocity[i].x = random(min_speed, max_speed+1) * (random(0,2)*2-1);
+//    velocity[i].x = random(min_speed, max_speed+1) * (random(0,2)*2-1);
     velocity[i].y = random(min_speed, max_speed+1) * (random(0,2)*2-1);
-//
-//    Serial.print(velocity[i].x);
-//    Serial.print("\n");
+    velocity[i].x = 0;
+//    velocity[i].y = 0;
+
   }
 
 }
@@ -70,7 +73,12 @@ void loop(void) {
 
   if(elapsed_time > 2000)
   {
+    const unsigned long start_time = millis();
+    
     update(delta_time);
+    const unsigned long end_time = millis();
+    Serial.print(end_time - start_time);
+    Serial.print("\n");
   }
   
   render();
@@ -79,28 +87,66 @@ void loop(void) {
   prev_elapsed_time = elapsed_time;
 }
 
+
 void update(float delta_time)
 {
-   for(int i=0; i< PARTICLE_COUNT; i++)
+//  for(int i=0; i< PARTICLE_COUNT; i++)
+//  {
+//    velocity[i].y -= 10;
+//  }  
+  Velocity v = {0,0};
+  float dist;
+  Vector2 diff;
+  float coeff;
+  float x_dist;
+  float y_dist;
+  for(int i=0; i< PARTICLE_COUNT; i++)
   {
-      position[i].x += delta_time * velocity[i].x;  
-      position[i].y += delta_time * velocity[i].y;  
-   
+//    velocity[i].y -= 10;
+    for(int j=0; j< PARTICLE_COUNT; j++)
+    {
+      v.x = 0;
+      v.y = 0;
+      
+      if(i != j)
+      {
+        x_dist = position[i].x - position[j].x;
+        y_dist = position[i].y - position[j].y;
+        
+        dist = x_dist*x_dist + y_dist*y_dist;
+
+        if(dist < 10)
+        {
+          diff.x = position[j].x - position[i].x;
+          diff.y = position[j].y - position[i].y;
+         
+          if(dist-10 < 0)
+          {
+            coeff = -10/(dist);
+            v.x += v.x * diff.x * coeff;
+            v.y += v.y * diff.y * coeff;
+          }
+        }
+        
+      }
+    } 
+
+    velocity[i].x += v.x;
+    velocity[i].y += v.y;
     
-//    if(pos.y > HEIGHT-2)
-//    {
-//      vel.y = -1.0;
-//      pos.y = HEIGHT-2;
-//    }
-//    if(pos.y < 2)
-//    {
-//      vel.y = 1.0;
-//      pos.y = 2.0;
-//    }
-
-//    u8g2.drawBox(position[i].x,position[i].y,2,2);
-
+    
+ 
   }
+
+  for(int i=0; i< PARTICLE_COUNT; i++)
+  {
+    position[i].x += velocity[i].x * delta_time;
+    position[i].y += velocity[i].y * delta_time;
+
+    velocity[i].x *= 0.95;
+    velocity[i].y *= 0.95;
+  }  
+
 }
 
 void render()
@@ -121,6 +167,6 @@ void draw()
 {
    for(int i=0; i< PARTICLE_COUNT; i++)
   {
-    u8g2.drawBox(floor(position[i].x),floor(position[i].y),4,4);
+    u8g2.drawBox(floor(position[i].x)-2, HEIGHT - (floor(position[i].y)-2),4,4);
   }
 }
