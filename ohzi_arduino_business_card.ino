@@ -25,25 +25,20 @@ unsigned long prev_elapsed_time = 0;
 #define HEIGHT 64
 
 
-struct Vector2 { float x;  float y;};
-struct Position { float x;  float y;};
+struct Position { short x;  short y;};
 struct Velocity { short x;   short y;};
 
 #define PARTICLE_COUNT 79
 Position position[] = {{62,2},{66,4},{70,6},{50,8},{74,8},{46,10},{54,10},{78,10},{42,12},{58,12},{82,12},{38,14},{62,14},{86,14},{36,16},{58,16},{54,18},{86,18},{36,20},{50,20},{74,20},{76,20},{46,22},{70,22},{76,22},{86,22},{36,24},{66,24},{74,24},{46,26},{62,26},{86,26},{36,28},{58,28},{72,28},{74,28},{46,30},{86,30},{36,32},{58,32},{72,32},{46,34},{70,34},{86,34},{36,36},{50,36},{58,36},{46,38},{54,38},{68,38},{70,38},{86,38},{36,40},{58,40},{46,42},{68,42},{86,42},{36,44},{58,44},{66,44},{68,44},{38,46},{46,46},{42,48},{58,48},{66,48},{46,50},{64,50},{78,50},{50,52},{58,52},{74,52},{54,54},{62,54},{64,54},{70,54},{58,56},{66,56},{62,58}};
 Velocity velocity[] = {{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1},{0,1}};
 
-#define FRAMERATE 16
-unsigned long time_to_update = 0.0;
-
-
 void setup(void) {
   u8g2.begin();
-  Serial.begin(9600);
+//  Serial.begin(9600);
 
 
-  const int min_speed = 10;
-  const int max_speed = 30;
+  const int min_speed = 1;
+  const int max_speed = 5;
   for(int i=0; i< PARTICLE_COUNT; i++)
   {
     position[i].y = HEIGHT - position[i].y;
@@ -57,9 +52,9 @@ void setup(void) {
 //    position[i].y = pos.y;
     
     
-//    velocity[i].x = random(min_speed, max_speed+1) * (random(0,2)*2-1);
-    velocity[i].y = random(min_speed, max_speed+1) * (random(0,2)*2-1);
-    velocity[i].x = 0;
+      velocity[i].x = random(min_speed, max_speed+1) * (random(0,2)*2-1);
+      velocity[i].y = random(min_speed, max_speed+1) * (random(0,2)*2-1);
+    //velocity[i].x = 0;
 //    velocity[i].y = 0;
 
   }
@@ -73,80 +68,41 @@ void loop(void) {
 
   if(elapsed_time > 2000)
   {
-    const unsigned long start_time = millis();
+    
     
     update(delta_time);
-    const unsigned long end_time = millis();
-    Serial.print(end_time - start_time);
-    Serial.print("\n");
+    
+
   }
-  
+//  const unsigned long start_time = millis();
   render();
-  
-  
+//  const unsigned long end_time = millis();
+//    Serial.print(end_time - start_time);
+//    Serial.print("\n");
   prev_elapsed_time = elapsed_time;
 }
 
 
 void update(float delta_time)
 {
-//  for(int i=0; i< PARTICLE_COUNT; i++)
-//  {
-//    velocity[i].y -= 10;
-//  }  
-  Velocity v = {0,0};
-  float dist;
-  Vector2 diff;
-  float coeff;
-  float x_dist;
-  float y_dist;
   for(int i=0; i< PARTICLE_COUNT; i++)
   {
-//    velocity[i].y -= 10;
-    for(int j=0; j< PARTICLE_COUNT; j++)
-    {
-      v.x = 0;
-      v.y = 0;
-      
-      if(i != j)
-      {
-        x_dist = position[i].x - position[j].x;
-        y_dist = position[i].y - position[j].y;
-        
-        dist = x_dist*x_dist + y_dist*y_dist;
+    if(position[i].x + velocity[i].x> WIDTH)
+      velocity[i].x *= -1;
 
-        if(dist < 10)
-        {
-          diff.x = position[j].x - position[i].x;
-          diff.y = position[j].y - position[i].y;
-         
-          if(dist-10 < 0)
-          {
-            coeff = -10/(dist);
-            v.x += v.x * diff.x * coeff;
-            v.y += v.y * diff.y * coeff;
-          }
-        }
-        
-      }
-    } 
+    if(position[i].y + velocity[i].y> HEIGHT)
+      velocity[i].y *= -1;
 
-    velocity[i].x += v.x;
-    velocity[i].y += v.y;
+    if(position[i].x + velocity[i].x< 0)
+      velocity[i].x *= -1;
+
+    if(position[i].y + velocity[i].y< 0)
+      velocity[i].y *= -1;
+
     
-    
- 
-  }
-
-  for(int i=0; i< PARTICLE_COUNT; i++)
-  {
-    position[i].x += velocity[i].x * delta_time;
-    position[i].y += velocity[i].y * delta_time;
-
-    velocity[i].x *= 0.95;
-    velocity[i].y *= 0.95;
+    position[i].x += velocity[i].x;
+    position[i].y += velocity[i].y;
   }  
-
 }
 
 void render()
@@ -167,6 +123,6 @@ void draw()
 {
    for(int i=0; i< PARTICLE_COUNT; i++)
   {
-    u8g2.drawBox(floor(position[i].x)-2, HEIGHT - (floor(position[i].y)-2),4,4);
+    u8g2.drawBox(position[i].x-2, HEIGHT - position[i].y,4,4);
   }
 }
