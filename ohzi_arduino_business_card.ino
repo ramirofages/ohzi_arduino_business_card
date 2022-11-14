@@ -26,7 +26,7 @@ unsigned long prev_elapsed_time = 0;
 
 
 struct Position { short x;  short y;};
-struct Velocity { short x;   short y;};
+struct Velocity { char x;   char y;};
 
 #define PARTICLE_COUNT 79
 Position position[] = {{62,2},{66,4},{70,6},{50,8},{74,8},{46,10},{54,10},{78,10},{42,12},{58,12},{82,12},{38,14},{62,14},{86,14},{36,16},{58,16},{54,18},{86,18},{36,20},{50,20},{74,20},{76,20},{46,22},{70,22},{76,22},{86,22},{36,24},{66,24},{74,24},{46,26},{62,26},{86,26},{36,28},{58,28},{72,28},{74,28},{46,30},{86,30},{36,32},{58,32},{72,32},{46,34},{70,34},{86,34},{36,36},{50,36},{58,36},{46,38},{54,38},{68,38},{70,38},{86,38},{36,40},{58,40},{46,42},{68,42},{86,42},{36,44},{58,44},{66,44},{68,44},{38,46},{46,46},{42,48},{58,48},{66,48},{46,50},{64,50},{78,50},{50,52},{58,52},{74,52},{54,54},{62,54},{64,54},{70,54},{58,56},{66,56},{62,58}};
@@ -69,16 +69,16 @@ void loop(void) {
   if(elapsed_time > 2000)
   {
     
-    
+//      const unsigned long start_time = millis();
     update(delta_time);
-    
-
-  }
-//  const unsigned long start_time = millis();
-  render();
-//  const unsigned long end_time = millis();
+//      const unsigned long end_time = millis();
 //    Serial.print(end_time - start_time);
 //    Serial.print("\n");
+
+  }
+
+  render();
+
   prev_elapsed_time = elapsed_time;
 }
 
